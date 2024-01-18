@@ -2,10 +2,8 @@ package lesson1.hw.task2;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.*;
+import java.io.*;
 import java.util.Objects;
 
 public class MainServerWindow extends JFrame {
@@ -21,7 +19,7 @@ public class MainServerWindow extends JFrame {
     JTextField fieldLogin = new JTextField("arteml");
     JTextField fieldPassword = new JTextField("1234");
     JTextField fieldMessage = new JTextField("message");
-    JTextArea areaCenterLog = new JTextArea("Server started\n");
+    JTextArea areaCenterLog = new JTextArea("Server started\n\n" + loadMessages());
 
 
     boolean isLogged = false;
@@ -51,6 +49,7 @@ public class MainServerWindow extends JFrame {
 
         JPanel panCenter = new JPanel(new GridLayout(1, 1));
         panCenter.add(areaCenterLog);
+        areaCenterLog.setEditable(false);
 
 
         JPanel panGroupSouth = new JPanel(new GridLayout(1, 2));
@@ -136,12 +135,55 @@ public class MainServerWindow extends JFrame {
         btnSendMessage.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!isLogged) {
-                    areaCenterLog.append("You cant send messages while you are logged off!");
-                    return;
-                }
-                areaCenterLog.append("arteml: " + fieldMessage.getText() + "\n");
+                sendMessage();
             }
         });
+
+        fieldMessage.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) sendMessage();
+            }
+        });
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                try (FileWriter fileWriter = new FileWriter("src/main/java/lesson1/hw/task2/log.txt", true);
+                     BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+
+                    bufferedWriter.write(areaCenterLog.getText());
+                } catch (IOException ex) {
+                    System.out.println("Error occurred" + ex.getMessage());
+                }
+                System.exit(0);
+            }
+        });
+    }
+
+    private void sendMessage() {
+        if (!isLogged) {
+            areaCenterLog.append("You cant send messages while you are logged off!");
+            return;
+        }
+        areaCenterLog.append("arteml: " + fieldMessage.getText() + "\n");
+    }
+
+    private String loadMessages() {
+        StringBuilder fileContent = new StringBuilder();
+        try (FileReader fileReader = new FileReader("src/main/java/lesson1/hw/task2/log.txt");
+             BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+            String result = "";
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                fileContent.append(line).append("\n");
+            }
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found" + e.getMessage());
+        } catch (IOException e) {
+            System.out.println("Error reading file" + e.getMessage());
+        }
+        return fileContent.toString();
     }
 }
