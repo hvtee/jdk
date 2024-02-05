@@ -1,4 +1,4 @@
-package lesson5.lc;
+package lesson6.lc;
 
 public class Main {
 }
